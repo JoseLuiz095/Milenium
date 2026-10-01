@@ -58,6 +58,33 @@ a { color: inherit; text-decoration: none; }
 .erp-breadcrumb span { padding: 0 .35rem; color: #b4c1b7; }
 .erp-content { min-height: calc(100vh - 64px); max-width: 1600px; margin: 0 auto; }
 .erp-topbar-actions .p-avatar { box-shadow: 0 0 0 4px rgba(201, 235, 153, .22); }
+.erp-command-trigger {
+  align-items: center;
+  gap: .55rem;
+  height: 2.35rem;
+  padding: 0 .55rem 0 .75rem;
+  border: 1px solid #d5e1d5;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, .75);
+  color: #5d7063;
+  font-size: .75rem;
+  font-weight: 650;
+  cursor: pointer;
+  transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease;
+}
+.erp-command-trigger:hover { border-color: #9fc288; box-shadow: 0 6px 16px rgba(47, 125, 73, .1); transform: translateY(-1px); }
+.erp-command-trigger > i { color: #5d9851; }
+.erp-command-trigger kbd,
+.erp-command-search kbd {
+  padding: .2rem .38rem;
+  border: 1px solid #dce6dc;
+  border-radius: 5px;
+  background: #f6f9f5;
+  color: #849187;
+  font-family: inherit;
+  font-size: .61rem;
+  font-weight: 800;
+}
 
 /* PrimeReact polish: keeps all ERP modules visually consistent */
 .p-card {
@@ -95,6 +122,22 @@ a { color: inherit; text-decoration: none; }
 .milenium-dialog .p-dialog-title { font-size: 1.25rem; }
 .milenium-dialog .p-dialog-content { padding: 1rem 1.5rem .4rem; background: #fbfdf9; }
 .milenium-dialog .p-dialog-footer { padding: 1rem 1.5rem 1.35rem; background: #fbfdf9; border-top: 1px solid #e5eee5; }
+.erp-command-dialog { width: min(640px, calc(100vw - 2rem)); overflow: hidden; border: 1px solid #dce8de; border-radius: 19px; box-shadow: 0 26px 80px rgba(10, 50, 28, .28); }
+.erp-command-dialog-content { padding: .75rem; background: #fbfdf9; }
+.erp-command-search { display: flex; align-items: center; gap: .7rem; padding: .2rem .3rem .2rem .7rem; border: 1px solid #ccdbcd; border-radius: 12px; background: #fff; }
+.erp-command-search > i { color: #6c9e5a; }
+.erp-command-search .p-inputtext { flex: 1; padding: .72rem 0; border: 0; background: transparent; font-size: .95rem; }
+.erp-command-search .p-inputtext:focus { box-shadow: none; }
+.erp-command-caption { padding: .8rem .45rem .55rem; color: #829087; font-size: .68rem; font-weight: 750; letter-spacing: .08em; text-transform: uppercase; }
+.erp-command-list { display: grid; gap: .2rem; max-height: min(56vh, 430px); overflow-y: auto; padding: .15rem; }
+.erp-command-item { display: flex; align-items: center; width: 100%; gap: .8rem; padding: .72rem; border: 1px solid transparent; border-radius: 12px; background: transparent; color: var(--milenium-ink); text-align: left; cursor: pointer; transition: background .16s ease, border-color .16s ease, transform .16s ease; }
+.erp-command-item:hover { border-color: #d6e6d4; background: #eff7ec; transform: translateX(2px); }
+.erp-command-icon { display: grid; flex: 0 0 2.3rem; place-items: center; width: 2.3rem; height: 2.3rem; border-radius: 9px; background: #e5f1e4; color: #397d48; }
+.erp-command-copy { display: grid; gap: .16rem; min-width: 0; }
+.erp-command-copy strong { font-size: .86rem; }
+.erp-command-copy small { color: #77877d; font-size: .72rem; }
+.erp-command-arrow { margin-left: auto; color: #91a396; font-size: .75rem; }
+.erp-command-empty { display: flex; align-items: center; justify-content: center; gap: .55rem; min-height: 7rem; color: #75867b; font-size: .85rem; }
 .p-datatable { overflow: hidden; border: 1px solid var(--milenium-border); border-radius: 14px; }
 .p-datatable .p-datatable-thead > tr > th { padding: .9rem 1rem; border-color: #e1ebe2; background: #f7faf6; color: #6d7f73; font-size: .69rem; letter-spacing: .05em; text-transform: uppercase; }
 .p-datatable .p-datatable-tbody > tr > td { padding: .95rem 1rem; border-color: #edf2ed; color: #365542; }
@@ -144,6 +187,9 @@ a { color: inherit; text-decoration: none; }
   .erp-toolbar > * { min-width: 100% !important; }
   .erp-welcome-card { padding: 1.25rem; }
   .erp-welcome-card h2 { font-size: 1.55rem !important; }
+  .erp-command-dialog-content { padding: .55rem; }
+  .erp-command-search { gap: .45rem; padding-left: .55rem; }
+  .erp-command-search kbd { display: none; }
   .milenium-dialog .p-dialog-content, .milenium-dialog .p-dialog-header, .milenium-dialog .p-dialog-footer { padding-right: 1rem; padding-left: 1rem; }
   .p-datatable-wrapper { overflow-x: auto; }
 }

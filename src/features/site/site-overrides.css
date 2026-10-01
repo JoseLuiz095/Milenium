@@ -76,6 +76,32 @@
 .milenium-site .workshop-photo .workshop-shelf,
 .milenium-site .workshop-photo .workshop-machine,
 .milenium-site .workshop-photo .workshop-floor { display: none; }
+.milenium-site .workshop-capabilities { gap: 9px; flex-wrap: wrap; }
+.milenium-site .workshop-capabilities span {
+  padding: 9px 11px;
+  border: 1px solid rgba(201, 235, 153, .22);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .06);
+  color: #e4f0d5;
+  font-size: 10px;
+  transition: transform .2s ease, background .2s ease;
+}
+.milenium-site .workshop-capabilities span:hover { transform: translateY(-2px); background: rgba(201, 235, 153, .12); }
+.milenium-site .workshop-scope {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  max-width: 450px;
+  margin: 3px 0 24px;
+  padding: 12px 0;
+  border-top: 1px solid rgba(255, 255, 255, .14);
+  border-bottom: 1px solid rgba(255, 255, 255, .1);
+}
+.milenium-site .workshop-scope > i { margin-top: 2px; color: var(--lime); }
+.milenium-site .workshop-scope strong,
+.milenium-site .workshop-scope small { display: block; }
+.milenium-site .workshop-scope strong { color: #eff7e4; font-size: 11px; }
+.milenium-site .workshop-scope small { margin-top: 4px; color: #aec4b1; font-size: 10px; line-height: 1.45; }
 
 .milenium-site .portfolio-card { border: 1px solid #e2ebe0; border-radius: 4px; }
 .milenium-site .portfolio-art { filter: saturate(.9); }
@@ -98,5 +124,7 @@
   .milenium-site .hero-photo .hero-visual-note { right: 10px; bottom: 10px; }
   .milenium-site .story-principles { grid-template-columns: 1fr; gap: 10px; }
   .milenium-site .workshop-photo { min-height: 300px; border-radius: 4px 4px 4px 18px; }
+  .milenium-site .workshop-capabilities { gap: 7px; }
+  .milenium-site .workshop-capabilities span { padding: 8px 9px; font-size: 9px; }
   .milenium-site .quote-proof { gap: 9px; }
 }

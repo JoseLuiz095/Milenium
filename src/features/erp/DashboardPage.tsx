@@ -106,7 +106,7 @@ const operationCards: readonly OperationCard[] = [
   },
   {
     title: 'Agenda de hoje',
-    description: 'Visitas técnicas e instalações programadas para hoje.',
+    description: 'Visitas técnicas e atendimentos programados para hoje.',
     value: '12',
     detail: '3 próximas em até 2 horas',
     icon: 'pi pi-calendar',
@@ -287,7 +287,7 @@ export function DashboardPage() {
             </div>
             <div className="flex align-items-center gap-2 mt-3 p-3 border-round-lg bg-orange-50 text-orange-800">
               <i className="pi pi-exclamation-triangle" aria-hidden="true" />
-              <span className="text-sm">Revise os itens críticos antes das próximas instalações.</span>
+              <span className="text-sm">Revise os itens críticos antes das próximas demandas da oficina.</span>
             </div>
             <div className="mt-3">
               <ActionLink to="/app/estoque" label="Abrir estoque" />

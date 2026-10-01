@@ -1,7 +1,9 @@
-import { useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { Avatar } from 'primereact/avatar';
 import { Button } from 'primereact/button';
+import { Dialog } from 'primereact/dialog';
+import { InputText } from 'primereact/inputtext';
 import { Sidebar } from 'primereact/sidebar';
 import { erpNavigation, type ErpNavigationItem } from '../features/erp/erpNavigation';
 import { signOut } from '../services/auth';
@@ -71,9 +73,36 @@ function SidebarFooter(): ReactNode {
 
 export function AppShell(): ReactNode {
   const [mobileMenuVisible, setMobileMenuVisible] = useState(false);
+  const [commandPaletteVisible, setCommandPaletteVisible] = useState(false);
+  const [commandQuery, setCommandQuery] = useState('');
   const location = useLocation();
   const navigate = useNavigate();
   const activeItem = erpNavigation.find((item) => item.path === location.pathname) ?? erpNavigation[0];
+  const availableCommands = useMemo(() => {
+    const query = commandQuery.trim().toLocaleLowerCase('pt-BR');
+    if (!query) return erpNavigation;
+    return erpNavigation.filter((item) =>
+      `${item.label} ${item.description}`.toLocaleLowerCase('pt-BR').includes(query),
+    );
+  }, [commandQuery]);
+
+  useEffect(() => {
+    const handleShortcut = (event: KeyboardEvent) => {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
+        event.preventDefault();
+        setCommandPaletteVisible(true);
+      }
+    };
+
+    window.addEventListener('keydown', handleShortcut);
+    return () => window.removeEventListener('keydown', handleShortcut);
+  }, []);
+
+  function openCommand(path: string) {
+    navigate(path);
+    setCommandPaletteVisible(false);
+    setCommandQuery('');
+  }
 
   return (
     <div className="milenium-shell flex" style={{ background: '#f4f7f2' }}>
@@ -122,6 +151,24 @@ export function AppShell(): ReactNode {
             </div>
           </div>
           <div className="erp-topbar-actions flex align-items-center gap-2 md:gap-3">
+            <button
+              type="button"
+              className="erp-command-trigger hidden md:flex"
+              onClick={() => setCommandPaletteVisible(true)}
+              aria-label="Abrir busca rápida"
+            >
+              <i className="pi pi-search" aria-hidden="true" />
+              <span>Busca rápida</span>
+              <kbd>Ctrl K</kbd>
+            </button>
+            <Button
+              icon="pi pi-search"
+              text
+              rounded
+              className="md:hidden"
+              aria-label="Abrir busca rápida"
+              onClick={() => setCommandPaletteVisible(true)}
+            />
             <Button icon="pi pi-bell" text rounded aria-label="Notificações" badge="3" badgeClassName="p-badge-danger" />
             <div className="hidden md:block text-right">
               <div className="text-sm font-semibold text-900">José Luiz</div>
@@ -146,6 +193,48 @@ export function AppShell(): ReactNode {
           <Outlet />
         </main>
       </div>
+
+      <Dialog
+        visible={commandPaletteVisible}
+        onHide={() => {
+          setCommandPaletteVisible(false);
+          setCommandQuery('');
+        }}
+        showHeader={false}
+        draggable={false}
+        className="erp-command-dialog"
+        contentClassName="erp-command-dialog-content"
+      >
+        <div className="erp-command-search">
+          <i className="pi pi-search" aria-hidden="true" />
+          <InputText
+            value={commandQuery}
+            onChange={(event) => setCommandQuery(event.target.value)}
+            placeholder="Buscar módulo, ação ou rotina..."
+            autoFocus
+            aria-label="Buscar no ERP"
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' && availableCommands[0]) {
+                openCommand(availableCommands[0].path);
+              }
+            }}
+          />
+          <kbd>ESC</kbd>
+        </div>
+        <div className="erp-command-caption">Navegue pelo ERP sem interromper a operação</div>
+        <div className="erp-command-list" role="listbox" aria-label="Módulos disponíveis">
+          {availableCommands.map((item) => (
+            <button key={item.id} type="button" className="erp-command-item" onClick={() => openCommand(item.path)}>
+              <span className="erp-command-icon"><i className={item.icon} aria-hidden="true" /></span>
+              <span className="erp-command-copy"><strong>{item.label}</strong><small>{item.description}</small></span>
+              <i className="pi pi-arrow-right erp-command-arrow" aria-hidden="true" />
+            </button>
+          ))}
+          {!availableCommands.length && (
+            <div className="erp-command-empty"><i className="pi pi-search" aria-hidden="true" />Nenhum módulo encontrado.</div>
+          )}
+        </div>
+      </Dialog>
     </div>
   );
 }
