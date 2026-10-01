@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "deploy:worker": "npm run build && npx wrangler deploy",
     "deploy:pages": "npm run build && npx wrangler pages deploy dist --project-name milenium",
     "preview": "vite preview",
     "lint": "eslint . --ext .ts,.tsx",
