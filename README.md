@@ -35,7 +35,19 @@ Com as variáveis configuradas, acesse `/auth/cadastro`, crie o usuário adminis
 
 ## Deploy no Cloudflare Pages
 
-O projeto já inclui `wrangler.toml`, saída `dist` e o script `npm run deploy:pages`. No Cloudflare Pages conectado ao GitHub, use `npm run build` como comando de build e `dist` como diretório de saída; deixe o deploy ser feito pelo próprio Pages. Se o painel estiver usando um campo de deploy command do Workers Builds, use `npm run deploy:pages` ou `npx wrangler pages deploy dist --project-name milenium`. Não use `npx wrangler deploy`, pois esse comando procura um entry-point de Worker.
+O projeto `milenium` é um projeto Cloudflare Pages. O `wrangler.toml` informa a saída
+`dist`, e o script `npm run deploy:pages` usa o comando próprio do Pages.
+
+No painel do Cloudflare, mantenha:
+
+- comando de build: `npm run build`
+- comando de implantação: `npx wrangler pages deploy dist --project-name milenium`
+- diretório raiz: `/`
+- branch: `main`
+- segredo `CLOUDFLARE_API_TOKEN` com permissão de implantação do Pages
+
+Não use `npx wrangler deploy` neste projeto: esse comando é para Workers e gera o aviso
+de que o projeto Pages não possui um entry-point de Worker.
 
 Cadastre `VITE_SUPABASE_URL` e `VITE_SUPABASE_PUBLISHABLE_KEY` nas variáveis de ambiente de produção.
 
