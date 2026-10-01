@@ -12,7 +12,7 @@ interface NavigationProps {
 
 function Brand(): ReactNode {
   return (
-    <div className="flex align-items-center gap-2 px-3 py-3">
+    <div className="erp-brand flex align-items-center gap-2 px-3 py-3">
       <div
         className="flex align-items-center justify-content-center border-round-xl"
         style={{ width: '2.65rem', height: '2.65rem', background: '#d4efdc', color: '#103923' }}
@@ -32,7 +32,7 @@ function Brand(): ReactNode {
 
 function Navigation({ onNavigate }: NavigationProps): ReactNode {
   return (
-    <nav aria-label="Módulos do ERP" className="flex flex-column gap-1 px-2 pb-3 overflow-y-auto">
+    <nav aria-label="Módulos do ERP" className="erp-nav flex flex-column gap-1 px-2 pb-3 overflow-y-auto">
       {erpNavigation.map((item: ErpNavigationItem) => (
         <NavLink
           key={item.id}
@@ -40,8 +40,8 @@ function Navigation({ onNavigate }: NavigationProps): ReactNode {
           end={item.id === 'dashboard'}
           onClick={onNavigate}
           className={({ isActive }) =>
-            `flex align-items-center gap-3 px-3 py-3 border-round-lg no-underline transition-colors ${
-              isActive ? 'bg-green-700 text-white shadow-2' : 'text-green-50 hover:bg-white-alpha-10'
+            `erp-nav-link flex align-items-center gap-3 px-3 py-3 border-round-lg no-underline transition-colors ${
+              isActive ? 'is-active' : ''
             }`
           }
           style={{ minHeight: '2.9rem' }}
@@ -102,9 +102,9 @@ export function AppShell(): ReactNode {
         </div>
       </Sidebar>
 
-      <div className="flex-1 min-w-0">
+      <div className="erp-main flex-1 min-w-0">
         <header
-          className="flex align-items-center justify-content-between px-3 md:px-5 py-3 border-bottom-1 surface-border bg-white sticky top-0 z-2"
+          className="erp-topbar flex align-items-center justify-content-between px-3 md:px-5 py-3 sticky top-0 z-2"
           style={{ minHeight: '4rem' }}
         >
           <div className="flex align-items-center gap-3">
@@ -117,11 +117,11 @@ export function AppShell(): ReactNode {
               onClick={() => setMobileMenuVisible(true)}
             />
             <div>
-              <div className="text-sm text-600 hidden sm:block">Milenium ERP</div>
+              <div className="erp-breadcrumb hidden sm:block">Milenium ERP <span>/</span> Operação</div>
               <h1 className="m-0 text-xl md:text-2xl font-semibold text-900">{activeItem.label}</h1>
             </div>
           </div>
-          <div className="flex align-items-center gap-2 md:gap-3">
+          <div className="erp-topbar-actions flex align-items-center gap-2 md:gap-3">
             <Button icon="pi pi-bell" text rounded aria-label="Notificações" badge="3" badgeClassName="p-badge-danger" />
             <div className="hidden md:block text-right">
               <div className="text-sm font-semibold text-900">José Luiz</div>

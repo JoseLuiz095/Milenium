@@ -18,18 +18,17 @@ export function PageHeader({
   action,
 }: PageHeaderProps) {
   return (
-    <div className="flex align-items-start justify-content-between gap-3 flex-wrap mb-4">
+    <div className="erp-page-header flex align-items-start justify-content-between gap-3 flex-wrap mb-4">
       <div>
         <div
-          className="text-sm font-semibold uppercase"
-          style={{ color: "#32804a", letterSpacing: ".08em" }}
+          className="erp-eyebrow text-sm font-semibold uppercase"
         >
           {eyebrow}
         </div>
-        <h1 className="mt-2 mb-2 text-3xl" style={{ color: "#173322" }}>
+        <h1 className="mt-2 mb-2 text-3xl">
           {title}
         </h1>
-        <p className="m-0 text-color-secondary line-height-3">{description}</p>
+        <p className="m-0 text-color-secondary line-height-3 erp-page-description">{description}</p>
       </div>
       {action}
     </div>
@@ -50,7 +49,7 @@ export function ModuleToolbar({
   secondaryAction?: ReactNode;
 }) {
   return (
-    <div className="flex align-items-center gap-2 flex-wrap mb-3">
+    <div className="erp-toolbar flex align-items-center gap-2 flex-wrap mb-3">
       <span className="p-input-icon-left flex-1" style={{ minWidth: 240 }}>
         <i className="pi pi-search" />
         <InputText
@@ -75,10 +74,7 @@ export function SummaryStrip({
     <div className="grid mb-4">
       {items.map((item) => (
         <div className="col-12 md:col-4" key={item.label}>
-          <Card
-            className="h-full"
-            style={{ border: "1px solid #dce8dc", borderRadius: 14 }}
-          >
+          <Card className="erp-summary-card h-full">
             <div className="flex align-items-center gap-3">
               <div
                 className="flex align-items-center justify-content-center border-round-xl"
@@ -155,7 +151,7 @@ export function EmptyState({
   action?: ReactNode;
 }) {
   return (
-    <div className="text-center p-5">
+      <div className="erp-empty-state text-center p-5">
       <i className="pi pi-inbox text-4xl mb-3" style={{ color: "#79a985" }} />
       <div className="font-semibold text-lg mb-2">{title}</div>
       <div className="text-color-secondary mb-3">{description}</div>
@@ -174,7 +170,7 @@ export function FormField({
   className?: string;
 }) {
   return (
-    <div className={`field ${className}`}>
+    <div className={`erp-form-field field ${className}`}>
       <label className="block text-sm font-medium mb-2">{label}</label>
       {children}
     </div>
