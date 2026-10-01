@@ -33,21 +33,21 @@ Sem essas variáveis, os serviços usam dados mock locais para a interface conti
 
 Com as variáveis configuradas, acesse `/auth/cadastro`, crie o usuário administrador e cadastre a primeira empresa. O usuário recebe uma membership própria com papel `owner`; as telas do ERP ficam protegidas pela sessão do Supabase. A área pública continua disponível sem login.
 
-## Deploy no Cloudflare
+## Deploy no Cloudflare Pages
 
-O projeto atual está conectado no Cloudflare pelo fluxo **Workers Builds**. Por isso o
-`wrangler.toml` usa o modo de Worker com assets estáticos e fallback de SPA, e o comando
-de implantação correto é `npx wrangler deploy` (ou `npm run deploy:worker`).
+O projeto `milenium` é um projeto Cloudflare Pages. O `wrangler.toml` informa a saída
+`dist`, e o script `npm run deploy:pages` usa o comando próprio do Pages.
 
 No painel do Cloudflare, mantenha:
 
 - comando de build: `npm run build`
-- comando de implantação: `npx wrangler deploy`
+- comando de implantação: `npx wrangler pages deploy dist --project-name milenium`
 - diretório raiz: `/`
 - branch: `main`
+- segredo `CLOUDFLARE_API_TOKEN` com permissão de implantação do Pages
 
-O script `npm run deploy:pages` continua disponível para um projeto criado no fluxo
-Cloudflare Pages, mas não deve ser usado no projeto atual, que foi criado como Worker.
+Não use `npx wrangler deploy` neste projeto: esse comando é para Workers e gera o aviso
+de que o projeto Pages não possui um entry-point de Worker.
 
 Cadastre `VITE_SUPABASE_URL` e `VITE_SUPABASE_PUBLISHABLE_KEY` nas variáveis de ambiente de produção.
 
