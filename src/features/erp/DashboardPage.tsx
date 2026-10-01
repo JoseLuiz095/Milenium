@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import type { CSSProperties } from 'react';
 import { Card } from 'primereact/card';
 import { ProgressBar } from 'primereact/progressbar';
 import { Tag } from 'primereact/tag';
@@ -105,7 +106,7 @@ const operationCards: readonly OperationCard[] = [
   },
   {
     title: 'Agenda de hoje',
-    description: 'Visitas técnicas e instalações programadas para hoje.',
+    description: 'Visitas técnicas e atendimentos programados para hoje.',
     value: '12',
     detail: '3 próximas em até 2 horas',
     icon: 'pi pi-calendar',
@@ -154,7 +155,7 @@ const schedule: readonly ScheduleItem[] = [
 
 function KpiCard({ kpi }: { kpi: Kpi }) {
   return (
-    <Card className="h-full border-1 surface-border shadow-1" style={{ borderTop: `3px solid ${kpi.color}` }}>
+    <Card className="erp-kpi-card h-full" style={{ '--kpi-color': kpi.color } as CSSProperties}>
       <div className="flex justify-content-between align-items-start gap-3">
         <div>
           <div className="text-sm text-600 mb-2">{kpi.label}</div>
@@ -176,7 +177,7 @@ function KpiCard({ kpi }: { kpi: Kpi }) {
 
 function OperationCardView({ card }: { card: OperationCard }) {
   return (
-    <Card className="h-full border-1 surface-border shadow-1">
+    <Card className="erp-operation-card h-full">
       <div className="flex align-items-start gap-3 mb-3">
         <div
           className="flex align-items-center justify-content-center border-round-lg flex-shrink-0"
@@ -202,14 +203,20 @@ function OperationCardView({ card }: { card: OperationCard }) {
 
 export function DashboardPage() {
   return (
-    <div className="flex flex-column gap-4">
-      <section className="flex flex-column md:flex-row md:align-items-center md:justify-content-between gap-3">
+    <div className="erp-dashboard flex flex-column gap-4">
+      <section className="erp-welcome-card flex flex-column md:flex-row md:align-items-center md:justify-content-between gap-3">
         <div>
-          <div className="text-sm text-600 mb-2">Quinta-feira, 1 de outubro de 2026</div>
+          <div className="erp-eyebrow mb-2">Centro de operação</div>
           <h2 className="m-0 text-3xl font-semibold text-900">Bom dia, José Luiz</h2>
-          <p className="m-0 mt-2 text-600">Aqui está o resumo da operação da Milenium.</p>
+          <p className="m-0 mt-2 text-600">Uma visão rápida do que precisa avançar hoje na Milenium.</p>
         </div>
-        <PrimaryActionLink to="/app/orcamentos" label="Novo orçamento" />
+        <div className="flex align-items-center gap-2 flex-wrap">
+          <Link to="/app/ordens-de-servico" className="p-button p-component p-button-outlined p-button-secondary no-underline">
+            <i className="pi pi-calendar p-button-icon p-button-icon-left" aria-hidden="true" />
+            <span className="p-button-label">Ver agenda</span>
+          </Link>
+          <PrimaryActionLink to="/app/orcamentos" label="Novo orçamento" />
+        </div>
       </section>
 
       <section className="grid" aria-label="Indicadores principais">
@@ -239,7 +246,7 @@ export function DashboardPage() {
 
       <section className="grid">
         <div className="col-12 lg:col-7">
-          <Card className="h-full border-1 surface-border shadow-1" title="Agenda de hoje" subTitle="Próximos compromissos da equipe">
+          <Card className="erp-panel-card h-full" title="Agenda de hoje" subTitle="Próximos compromissos da equipe">
             <div className="flex flex-column gap-3">
               {schedule.map((item) => (
                 <div key={`${item.time}-${item.title}`} className="flex align-items-center gap-3 py-2 border-bottom-1 surface-border">
@@ -262,7 +269,7 @@ export function DashboardPage() {
         </div>
 
         <div className="col-12 lg:col-5">
-          <Card className="h-full border-1 surface-border shadow-1" title="Saúde do estoque" subTitle="Posição atual dos materiais">
+          <Card className="erp-panel-card h-full" title="Saúde do estoque" subTitle="Posição atual dos materiais">
             <div className="flex align-items-center justify-content-between mb-2">
               <span className="text-sm text-600">Nível médio de disponibilidade</span>
               <span className="font-bold text-green-700">78%</span>
@@ -280,7 +287,7 @@ export function DashboardPage() {
             </div>
             <div className="flex align-items-center gap-2 mt-3 p-3 border-round-lg bg-orange-50 text-orange-800">
               <i className="pi pi-exclamation-triangle" aria-hidden="true" />
-              <span className="text-sm">Revise os itens críticos antes das próximas instalações.</span>
+              <span className="text-sm">Revise os itens críticos antes das próximas demandas da oficina.</span>
             </div>
             <div className="mt-3">
               <ActionLink to="/app/estoque" label="Abrir estoque" />

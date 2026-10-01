@@ -37,7 +37,7 @@ export function LoginPage(): JSX.Element {
         );
       } else {
         const companies = await listMyCompanies();
-        navigate(companies.length > 0 ? "/app" : "/auth/bootstrap", {
+        navigate(companies.length > 0 ? "/app" : "/auth/cadastro", {
           replace: true,
         });
       }

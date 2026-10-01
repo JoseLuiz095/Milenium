@@ -126,7 +126,7 @@ export default function ClientesPage() {
           },
         ]}
       />
-      <Card style={{ border: "1px solid #dce8dc", borderRadius: 14 }}>
+      <Card className="erp-data-card">
         <ModuleToolbar
           value={query}
           onChange={setQuery}
@@ -184,6 +184,7 @@ export default function ClientesPage() {
       <Dialog
         header="Novo cliente"
         visible={visible}
+        className="milenium-dialog"
         style={{ width: "min(560px, 94vw)" }}
         onHide={() => setVisible(false)}
         footer={

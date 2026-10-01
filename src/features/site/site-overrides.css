@@ -1,0 +1,130 @@
+/* Conversion-focused visual layer for the public Milenium page. */
+.milenium-site .hero-photo {
+  min-height: 515px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, .15);
+  border-radius: 28px 28px 5px 28px;
+  background: #234f35;
+  box-shadow: 18px 24px 0 rgba(201, 235, 153, .1), 0 30px 65px rgba(0, 0, 0, .16);
+}
+.milenium-site .hero-photo img,
+.milenium-site .workshop-photo img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.milenium-site .hero-photo img { object-position: 62% center; }
+.milenium-site .hero-photo-shade,
+.milenium-site .workshop-photo-shade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(13, 45, 32, .03) 20%, rgba(13, 45, 32, .72) 100%);
+}
+.milenium-site .hero-photo .hero-visual-note { right: 22px; bottom: 22px; }
+.milenium-site .hero-photo .hero-orb,
+.milenium-site .hero-photo .hero-sun,
+.milenium-site .hero-photo .hero-field,
+.milenium-site .hero-photo .irrigation-pivot { display: none; }
+
+.milenium-site .story-principles {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 30px;
+}
+.milenium-site .story-principles span {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #55725c;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1.35;
+}
+.milenium-site .story-principles i { color: #6d9b52; font-size: 13px; }
+
+.milenium-site .fit-section { padding-top: 88px; padding-bottom: 88px; background: #fbfcf8; }
+.milenium-site .fit-heading { max-width: 650px; }
+.milenium-site .fit-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 38px; }
+.milenium-site .fit-card {
+  position: relative;
+  min-height: 228px;
+  padding: 28px;
+  overflow: hidden;
+  border: 1px solid #dfe9dd;
+  border-radius: 5px;
+  background: #f1f6ee;
+  transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+}
+.milenium-site .fit-card:hover { transform: translateY(-4px); border-color: #b7d39f; box-shadow: 0 16px 30px rgba(24, 76, 39, .09); }
+.milenium-site .fit-card > i { display: block; margin: 19px 0 22px; color: #5f934e; font-size: 24px; }
+.milenium-site .fit-card h3 { margin: 0 0 9px; color: var(--green); font: 500 23px/1.05 Georgia, serif; }
+.milenium-site .fit-card p { max-width: 300px; margin: 0; color: #687a6d; font-size: 12px; line-height: 1.6; }
+.milenium-site .fit-number { position: absolute; top: 18px; right: 22px; color: #9db786; font: italic 18px Georgia, serif; }
+.milenium-site .fit-card:nth-child(2) { background: #f2ede2; border-color: #e5ddc9; }
+.milenium-site .fit-card:nth-child(2) > i { color: #a5864d; }
+.milenium-site .fit-card:nth-child(3) { background: #e9f1f0; border-color: #d5e3e1; }
+.milenium-site .fit-card:nth-child(3) > i { color: #4a8583; }
+
+.milenium-site .workshop-photo { min-height: 380px; border-radius: 5px 5px 5px 28px; background: #234f35; }
+.milenium-site .workshop-photo img { object-position: center; }
+.milenium-site .workshop-photo .workshop-label { z-index: 2; }
+.milenium-site .workshop-photo .workshop-glow,
+.milenium-site .workshop-photo .workshop-window,
+.milenium-site .workshop-photo .workshop-shelf,
+.milenium-site .workshop-photo .workshop-machine,
+.milenium-site .workshop-photo .workshop-floor { display: none; }
+.milenium-site .workshop-capabilities { gap: 9px; flex-wrap: wrap; }
+.milenium-site .workshop-capabilities span {
+  padding: 9px 11px;
+  border: 1px solid rgba(201, 235, 153, .22);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .06);
+  color: #e4f0d5;
+  font-size: 10px;
+  transition: transform .2s ease, background .2s ease;
+}
+.milenium-site .workshop-capabilities span:hover { transform: translateY(-2px); background: rgba(201, 235, 153, .12); }
+.milenium-site .workshop-scope {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  max-width: 450px;
+  margin: 3px 0 24px;
+  padding: 12px 0;
+  border-top: 1px solid rgba(255, 255, 255, .14);
+  border-bottom: 1px solid rgba(255, 255, 255, .1);
+}
+.milenium-site .workshop-scope > i { margin-top: 2px; color: var(--lime); }
+.milenium-site .workshop-scope strong,
+.milenium-site .workshop-scope small { display: block; }
+.milenium-site .workshop-scope strong { color: #eff7e4; font-size: 11px; }
+.milenium-site .workshop-scope small { margin-top: 4px; color: #aec4b1; font-size: 10px; line-height: 1.45; }
+
+.milenium-site .portfolio-card { border: 1px solid #e2ebe0; border-radius: 4px; }
+.milenium-site .portfolio-art { filter: saturate(.9); }
+.milenium-site .form-heading { display: grid; gap: 6px; margin-bottom: 26px; padding-bottom: 18px; border-bottom: 1px solid #e2eadd; }
+.milenium-site .form-heading span { color: #73946c; font-size: 9px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; }
+.milenium-site .form-heading strong { color: var(--green); font: 500 23px/1.08 Georgia, serif; }
+.milenium-site .quote-proof { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 25px; color: #54725b; font-size: 10px; font-weight: 800; }
+.milenium-site .quote-proof span { display: inline-flex; align-items: center; gap: 6px; }
+.milenium-site .quote-proof i { color: #749b57; }
+.milenium-site .form-success { padding: 11px 14px; border: 1px solid #cbe0bf; border-radius: 4px; background: #f0f8eb; }
+
+@media (max-width: 900px) {
+  .milenium-site .hero-photo { min-height: 390px; }
+  .milenium-site .fit-grid { grid-template-columns: 1fr; }
+  .milenium-site .fit-card { min-height: auto; }
+}
+
+@media (max-width: 650px) {
+  .milenium-site .hero-photo { min-height: 300px; margin-top: 24px; border-radius: 18px 18px 4px 18px; box-shadow: 10px 14px 0 rgba(201, 235, 153, .1); }
+  .milenium-site .hero-photo .hero-visual-note { right: 10px; bottom: 10px; }
+  .milenium-site .story-principles { grid-template-columns: 1fr; gap: 10px; }
+  .milenium-site .workshop-photo { min-height: 300px; border-radius: 4px 4px 4px 18px; }
+  .milenium-site .workshop-capabilities { gap: 7px; }
+  .milenium-site .workshop-capabilities span { padding: 8px 9px; font-size: 9px; }
+  .milenium-site .quote-proof { gap: 9px; }
+}
