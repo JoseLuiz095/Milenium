@@ -1,10 +1,14 @@
 import { useEffect, useState } from "react";
 import {
-  listFinancialEntries,
-  listParties,
-  listQuotes,
-  listServiceOrders,
-} from "../../../services/erp";
+  createClientRow,
+  createFinanceRow,
+  createQuoteRow,
+  createServiceOrderRow,
+  listClientRows,
+  listFinanceRows,
+  listQuoteRows,
+  listServiceOrderRows,
+} from "../../../services/erpOperations";
 
 export type ServiceRecord = Record<string, unknown>;
 
@@ -32,97 +36,12 @@ export async function requestRows<T extends ServiceRecord>(
   resource: string,
   fallback: T[],
 ): Promise<T[]> {
-  try {
-    if (resource === "clients") {
-      const parties = await listParties();
-      return parties
-        .filter((party) =>
-          ["customer", "company", "person"].includes(party.party_type),
-        )
-        .map((party) => ({
-          id: party.id,
-          name: party.name,
-          document: party.document ?? "—",
-          phone: party.phone ?? "—",
-          city: "—",
-          status: party.status === "active" ? "Ativo" : "Inativo",
-          lastService: "—",
-        })) as unknown as T[];
-    }
-    if (resource === "quotes") {
-      const quotes = await listQuotes();
-      return quotes.map((quote) => ({
-        id: quote.number,
-        customer: quote.party_id ?? "Cliente não informado",
-        equipment: quote.notes ?? "Proposta comercial",
-        value: quote.total,
-        issueDate: quote.issued_at,
-        validUntil: quote.expires_at ?? quote.issued_at,
-        status:
-          (
-            {
-              draft: "Rascunho",
-              sent: "Enviado",
-              accepted: "Aprovado",
-              rejected: "Recusado",
-              expired: "Expirado",
-              cancelled: "Cancelado",
-            } as Record<string, string>
-          )[quote.status] ?? quote.status,
-      })) as unknown as T[];
-    }
-    if (resource === "service-orders") {
-      const orders = await listServiceOrders();
-      return orders.map((order) => ({
-        id: order.number,
-        customer: order.party_id ?? "Cliente não informado",
-        type: order.title,
-        technician: order.assigned_to ?? "Equipe técnica",
-        scheduledAt: order.planned_start ?? order.created_at.slice(0, 10),
-        status:
-          (
-            {
-              draft: "Rascunho",
-              triage: "Triagem",
-              planned: "Agendada",
-              in_progress: "Em andamento",
-              waiting_material: "Aguardando peça",
-              waiting_third_party: "Aguardando terceiro",
-              waiting_customer: "Aguardando cliente",
-              completed: "Concluída",
-              approved: "Aprovada",
-              billed: "Faturada",
-              closed: "Encerrada",
-              cancelled: "Cancelada",
-            } as Record<string, string>
-          )[order.status] ?? order.status,
-      })) as unknown as T[];
-    }
-    if (resource === "finance") {
-      const entries = await listFinancialEntries();
-      return entries.map((entry) => ({
-        id: entry.id,
-        description: entry.description,
-        type: entry.entry_type === "receivable" ? "Receita" : "Despesa",
-        category: entry.category ?? "Geral",
-        amount: entry.amount,
-        dueDate: entry.due_date,
-        status:
-          (
-            {
-              pending: "Pendente",
-              due: "Vencendo",
-              partially_paid: "Parcial",
-              paid: "Pago",
-              cancelled: "Cancelado",
-              overdue: "Vencido",
-            } as Record<string, string>
-          )[entry.status] ?? entry.status,
-      })) as unknown as T[];
-    }
-  } catch {
-    return fallback;
+  if (resource === "clients") return (await listClientRows()) as unknown as T[];
+  if (resource === "quotes") return (await listQuoteRows()) as unknown as T[];
+  if (resource === "service-orders") {
+    return (await listServiceOrderRows()) as unknown as T[];
   }
+  if (resource === "finance") return (await listFinanceRows()) as unknown as T[];
 
   const service = getMileniumService();
   if (!service?.list) return fallback;
@@ -141,10 +60,49 @@ export async function requestRows<T extends ServiceRecord>(
 
 export async function persistRow<T extends ServiceRecord>(
   resource: string,
-  payload: T,
+  payload: ServiceRecord,
 ): Promise<T> {
+  if (resource === "clients") {
+    return (await createClientRow({
+      name: String(payload.name ?? ""),
+      document: String(payload.document ?? ""),
+      phone: String(payload.phone ?? ""),
+      city: String(payload.city ?? ""),
+      status: String(payload.status ?? "Ativo"),
+    })) as unknown as T;
+  }
+  if (resource === "quotes") {
+    return (await createQuoteRow({
+      customerId: String(payload.customerId ?? ""),
+      customer: String(payload.customer ?? ""),
+      equipment: String(payload.equipment ?? ""),
+      value: Number(payload.value ?? 0),
+      validUntil: String(payload.validUntil ?? ""),
+      status: String(payload.status ?? "Rascunho"),
+    })) as unknown as T;
+  }
+  if (resource === "service-orders") {
+    return (await createServiceOrderRow({
+      customerId: String(payload.customerId ?? ""),
+      type: String(payload.type ?? ""),
+      technician: String(payload.technician ?? ""),
+      scheduledAt: String(payload.scheduledAt ?? ""),
+      status: String(payload.status ?? "Agendada"),
+    })) as unknown as T;
+  }
+  if (resource === "finance") {
+    return (await createFinanceRow({
+      description: String(payload.description ?? ""),
+      type: String(payload.type ?? "Receita"),
+      category: String(payload.category ?? "Geral"),
+      amount: Number(payload.amount ?? 0),
+      dueDate: String(payload.dueDate ?? ""),
+      status: String(payload.status ?? "Pendente"),
+    })) as unknown as T;
+  }
+
   const service = getMileniumService();
-  if (!service?.create) return payload;
+  if (!service?.create) return payload as T;
 
   try {
     const result = await service.create(resource, payload);
@@ -154,7 +112,7 @@ export async function persistRow<T extends ServiceRecord>(
         : result;
     return (data && typeof data === "object" ? data : payload) as T;
   } catch {
-    return payload;
+    return payload as T;
   }
 }
 
@@ -164,22 +122,34 @@ export function useModuleRows<T extends ServiceRecord>(
 ) {
   const [rows, setRows] = useState<T[]>(fallback);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
     setLoading(true);
-    requestRows(resource, fallback).then((data) => {
-      if (active) {
-        setRows(data);
-        setLoading(false);
-      }
-    });
+    setError(null);
+    requestRows(resource, fallback)
+      .then((data) => {
+        if (active) setRows(data);
+      })
+      .catch((requestError: unknown) => {
+        if (active) {
+          setError(
+            requestError instanceof Error
+              ? requestError.message
+              : "Não foi possível carregar os dados agora.",
+          );
+        }
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
     return () => {
       active = false;
     };
   }, [resource]);
 
-  return { rows, setRows, loading };
+  return { rows, setRows, loading, error };
 }
 
 export function formatCurrency(value: number) {

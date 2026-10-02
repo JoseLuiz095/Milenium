@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "primereact/button";
 import { Column } from "primereact/column";
 import { DataTable } from "primereact/datatable";
@@ -6,6 +6,7 @@ import { Dialog } from "primereact/dialog";
 import { InputText } from "primereact/inputtext";
 import { Dropdown } from "primereact/dropdown";
 import { Card } from "primereact/card";
+import { Message } from "primereact/message";
 import {
   PageHeader,
   ModuleToolbar,
@@ -16,9 +17,15 @@ import {
   CloseButton,
 } from "./moduleUi";
 import { formatDate, persistRow, useModuleRows } from "./moduleData";
+import {
+  listClientOptions,
+  type ClientOption,
+} from "../../../services/erpOperations";
 
 type ServiceOrder = {
   id: string;
+  number: string;
+  customerId: string | null;
   customer: string;
   type: string;
   technician: string;
@@ -27,7 +34,9 @@ type ServiceOrder = {
 };
 const fallbackOrders: ServiceOrder[] = [
   {
-    id: "OS-10482",
+    id: "fallback-order-1",
+    number: "OS-2026-0001",
+    customerId: "fallback-client-1",
     customer: "Fazenda Santa Clara",
     type: "Manutenção preventiva",
     technician: "Carlos Mendes",
@@ -35,7 +44,9 @@ const fallbackOrders: ServiceOrder[] = [
     status: "Agendada",
   },
   {
-    id: "OS-10476",
+    id: "fallback-order-2",
+    number: "OS-2026-0002",
+    customerId: "fallback-client-2",
     customer: "Agro Vale Verde",
     type: "Diagnóstico de bomba",
     technician: "Marina Lopes",
@@ -43,7 +54,9 @@ const fallbackOrders: ServiceOrder[] = [
     status: "Em andamento",
   },
   {
-    id: "OS-10461",
+    id: "fallback-order-3",
+    number: "OS-2026-0003",
+    customerId: "fallback-client-3",
     customer: "Cooperativa Horizonte",
     type: "Instalação de sensor",
     technician: "João Souza",
@@ -53,43 +66,67 @@ const fallbackOrders: ServiceOrder[] = [
 ];
 
 export default function ServiceOrdersPage() {
-  const { rows, setRows, loading } = useModuleRows<ServiceOrder>(
+  const { rows, setRows, loading, error: loadError } = useModuleRows<ServiceOrder>(
     "service-orders",
     fallbackOrders,
   );
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<string | null>(null);
   const [visible, setVisible] = useState(false);
+  const [clients, setClients] = useState<ClientOption[]>([]);
+  const [clientError, setClientError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [form, setForm] = useState({
-    customer: "",
+    customerId: "",
     type: "",
     technician: "",
     scheduledAt: "",
     status: "Agendada",
   });
+  useEffect(() => {
+    listClientOptions()
+      .then(setClients)
+      .catch((error: unknown) => {
+        setClientError(
+          error instanceof Error
+            ? error.message
+            : "Não foi possível carregar os clientes.",
+        );
+      });
+  }, []);
   const filtered = rows.filter(
     (row) =>
-      [row.id, row.customer, row.type, row.technician]
+      [row.number, row.customer, row.type, row.technician]
         .join(" ")
         .toLowerCase()
         .includes(query.toLowerCase()) &&
       (!status || row.status === status),
   );
   const save = async () => {
-    if (!form.customer.trim() || !form.type.trim()) return;
-    const order = await persistRow<ServiceOrder>("service-orders", {
-      ...form,
-      id: `OS-${10482 + rows.length}`,
-    });
-    setRows((current) => [order, ...current]);
-    setVisible(false);
-    setForm({
-      customer: "",
-      type: "",
-      technician: "",
-      scheduledAt: "",
-      status: "Agendada",
-    });
+    if (!form.customerId || !form.type.trim()) return;
+    setSaving(true);
+    setSaveError(null);
+    try {
+      const order = await persistRow<ServiceOrder>("service-orders", form);
+      setRows((current) => [order, ...current]);
+      setVisible(false);
+      setForm({
+        customerId: "",
+        type: "",
+        technician: "",
+        scheduledAt: "",
+        status: "Agendada",
+      });
+    } catch (requestError) {
+      setSaveError(
+        requestError instanceof Error
+          ? requestError.message
+          : "Não foi possível criar a ordem de serviço.",
+      );
+    } finally {
+      setSaving(false);
+    }
   };
   return (
     <div>
@@ -132,6 +169,9 @@ export default function ServiceOrdersPage() {
           },
         ]}
       />
+      {(loadError || clientError) && (
+        <Message severity="warn" text={loadError ?? clientError ?? ""} className="mb-3 w-full" />
+      )}
       <Card style={{ border: "1px solid #dce8dc", borderRadius: 14 }}>
         <ModuleToolbar
           value={query}
@@ -164,7 +204,7 @@ export default function ServiceOrdersPage() {
           responsiveLayout="scroll"
           emptyMessage={<EmptyState />}
         >
-          <Column field="id" header="OS" />
+          <Column field="number" header="OS" />
           <Column field="customer" header="Cliente" />
           <Column field="type" header="Serviço" />
           <Column field="technician" header="Técnico" />
@@ -198,19 +238,29 @@ export default function ServiceOrdersPage() {
         footer={
           <>
             <CloseButton onClick={() => setVisible(false)} />
-            <Button label="Criar ordem" icon="pi pi-check" onClick={save} />
+            <Button
+              label="Criar ordem"
+              icon="pi pi-check"
+              onClick={() => void save()}
+              loading={saving}
+              disabled={!clients.length}
+            />
           </>
         }
       >
         <div className="grid pt-2">
+          {saveError && <div className="col-12"><Message severity="error" text={saveError} className="w-full" /></div>}
           <FormField label="Cliente" className="col-12">
-            <InputText
-              value={form.customer}
-              onChange={(event) =>
-                setForm({ ...form, customer: event.target.value })
-              }
+            <Dropdown
+              value={form.customerId}
+              options={clients}
+              optionLabel="name"
+              optionValue="id"
+              onChange={(event) => setForm({ ...form, customerId: event.value })}
+              placeholder={clients.length ? "Selecione um cliente" : "Cadastre um cliente antes"}
               className="w-full"
-              autoFocus
+              filter
+              filterBy="name"
             />
           </FormField>
           <FormField label="Tipo de serviço" className="col-12">
