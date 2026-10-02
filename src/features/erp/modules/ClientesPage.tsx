@@ -6,6 +6,7 @@ import { Dialog } from "primereact/dialog";
 import { InputText } from "primereact/inputtext";
 import { Dropdown } from "primereact/dropdown";
 import { Card } from "primereact/card";
+import { Message } from "primereact/message";
 import {
   PageHeader,
   ModuleToolbar,
@@ -15,10 +16,15 @@ import {
   FormField,
   CloseButton,
 } from "./moduleUi";
-import { persistRow, useModuleRows } from "./moduleData";
+import { formatCurrency, formatDate, persistRow, useModuleRows } from "./moduleData";
+import {
+  listClientActivity,
+  type ClientActivity,
+} from "../../../services/erpOperations";
 
 type Client = {
   id: string;
+  code: string;
   name: string;
   document: string;
   phone: string;
@@ -28,7 +34,8 @@ type Client = {
 };
 const fallbackClients: Client[] = [
   {
-    id: "CLI-001",
+    id: "fallback-client-1",
+    code: "CLI-0001",
     name: "Fazenda Santa Clara",
     document: "12.345.678/0001-90",
     phone: "(16) 3221-0900",
@@ -37,7 +44,8 @@ const fallbackClients: Client[] = [
     lastService: "2026-09-18",
   },
   {
-    id: "CLI-002",
+    id: "fallback-client-2",
+    code: "CLI-0002",
     name: "Agro Vale Verde",
     document: "45.987.321/0001-08",
     phone: "(19) 3662-4510",
@@ -46,7 +54,8 @@ const fallbackClients: Client[] = [
     lastService: "2026-08-28",
   },
   {
-    id: "CLI-003",
+    id: "fallback-client-3",
+    code: "CLI-0003",
     name: "Cooperativa Horizonte",
     document: "08.112.554/0001-44",
     phone: "(34) 3234-7712",
@@ -57,13 +66,18 @@ const fallbackClients: Client[] = [
 ];
 
 export default function ClientesPage() {
-  const { rows, setRows, loading } = useModuleRows<Client>(
+  const { rows, setRows, loading, error: loadError } = useModuleRows<Client>(
     "clients",
     fallbackClients,
   );
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<string | null>(null);
   const [visible, setVisible] = useState(false);
+  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const [activity, setActivity] = useState<ClientActivity[]>([]);
+  const [activityLoading, setActivityLoading] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
     name: "",
     document: "",
@@ -80,14 +94,32 @@ export default function ClientesPage() {
   });
   const save = async () => {
     if (!form.name.trim()) return;
-    const client = await persistRow<Client>("clients", {
-      ...form,
-      id: `CLI-${String(rows.length + 1).padStart(3, "0")}`,
-      lastService: "—",
-    });
-    setRows((current) => [client, ...current]);
-    setForm({ name: "", document: "", phone: "", city: "", status: "Ativo" });
-    setVisible(false);
+    setSaving(true);
+    setSaveError(null);
+    try {
+      const client = await persistRow<Client>("clients", form);
+      setRows((current) => [client, ...current]);
+      setForm({ name: "", document: "", phone: "", city: "", status: "Ativo" });
+      setVisible(false);
+    } catch (requestError) {
+      setSaveError(
+        requestError instanceof Error
+          ? requestError.message
+          : "Não foi possível salvar o cliente.",
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
+  const openHistory = async (client: Client) => {
+    setSelectedClient(client);
+    setActivity([]);
+    setActivityLoading(true);
+    try {
+      setActivity(await listClientActivity(client.id));
+    } finally {
+      setActivityLoading(false);
+    }
   };
   return (
     <div>
@@ -126,6 +158,7 @@ export default function ClientesPage() {
           },
         ]}
       />
+      {loadError && <Message severity="warn" text={loadError} className="mb-3 w-full" />}
       <Card className="erp-data-card">
         <ModuleToolbar
           value={query}
@@ -158,7 +191,7 @@ export default function ClientesPage() {
           responsiveLayout="scroll"
           emptyMessage={<EmptyState />}
         >
-          <Column field="id" header="Código" />
+          <Column field="code" header="Código" />
           <Column field="name" header="Cliente" />
           <Column field="document" header="Documento" />
           <Column field="phone" header="Telefone" />
@@ -170,12 +203,13 @@ export default function ClientesPage() {
           />
           <Column
             header="Ações"
-            body={() => (
+            body={(row: Client) => (
               <Button
-                icon="pi pi-ellipsis-v"
+                label="Histórico"
+                icon="pi pi-history"
                 text
-                rounded
-                aria-label="Ações do cliente"
+                onClick={() => void openHistory(row)}
+                aria-label={`Ver histórico de ${row.name}`}
               />
             )}
           />
@@ -190,11 +224,17 @@ export default function ClientesPage() {
         footer={
           <>
             <CloseButton onClick={() => setVisible(false)} />
-            <Button label="Salvar cliente" icon="pi pi-check" onClick={save} />
+            <Button
+              label="Salvar cliente"
+              icon="pi pi-check"
+              onClick={() => void save()}
+              loading={saving}
+            />
           </>
         }
       >
         <div className="grid pt-2">
+          {saveError && <div className="col-12"><Message severity="error" text={saveError} className="w-full" /></div>}
           <FormField label="Nome ou razão social" className="col-12">
             <InputText
               value={form.name}
@@ -241,6 +281,38 @@ export default function ClientesPage() {
             />
           </FormField>
         </div>
+      </Dialog>
+      <Dialog
+        header={selectedClient ? `Histórico · ${selectedClient.name}` : "Histórico do cliente"}
+        visible={Boolean(selectedClient)}
+        className="milenium-dialog"
+        style={{ width: "min(680px, 94vw)" }}
+        onHide={() => setSelectedClient(null)}
+      >
+        {activityLoading ? (
+          <div className="py-5 text-center text-color-secondary">Carregando histórico...</div>
+        ) : activity.length ? (
+          <div className="flex flex-column gap-3 pt-2">
+            {activity.map((item) => (
+              <div className="surface-50 border-round-xl p-3 flex justify-content-between align-items-start gap-3" key={item.id}>
+                <div>
+                  <div className="font-semibold">{item.type}</div>
+                  <div className="text-sm text-color-secondary mt-1">{item.title}</div>
+                  <div className="text-sm mt-2">{formatDate(item.date)}</div>
+                </div>
+                <div className="text-right">
+                  <StatusTag value={item.status} />
+                  {typeof item.value === "number" && <div className="font-semibold mt-2">{formatCurrency(item.value)}</div>}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <EmptyState
+            title="Ainda não há movimentações"
+            description="Orçamentos e ordens de serviço deste cliente aparecerão aqui."
+          />
+        )}
       </Dialog>
     </div>
   );

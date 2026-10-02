@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "primereact/button";
 import { Column } from "primereact/column";
 import { DataTable } from "primereact/datatable";
@@ -7,6 +7,7 @@ import { InputText } from "primereact/inputtext";
 import { InputNumber } from "primereact/inputnumber";
 import { Dropdown } from "primereact/dropdown";
 import { Card } from "primereact/card";
+import { Message } from "primereact/message";
 import {
   PageHeader,
   ModuleToolbar,
@@ -22,9 +23,15 @@ import {
   persistRow,
   useModuleRows,
 } from "./moduleData";
+import {
+  listClientOptions,
+  type ClientOption,
+} from "../../../services/erpOperations";
 
 type Quote = {
   id: string;
+  number: string;
+  customerId: string | null;
   customer: string;
   equipment: string;
   value: number;
@@ -34,7 +41,9 @@ type Quote = {
 };
 const fallbackQuotes: Quote[] = [
   {
-    id: "ORC-2401",
+    id: "fallback-quote-1",
+    number: "ORC-2026-0001",
+    customerId: "fallback-client-1",
     customer: "Fazenda Santa Clara",
     equipment: "Pivô central 120 ha",
     value: 184500,
@@ -43,7 +52,9 @@ const fallbackQuotes: Quote[] = [
     status: "Enviado",
   },
   {
-    id: "ORC-2398",
+    id: "fallback-quote-2",
+    number: "ORC-2026-0002",
+    customerId: "fallback-client-2",
     customer: "Agro Vale Verde",
     equipment: "Bomba vertical 40 cv",
     value: 32700,
@@ -52,7 +63,9 @@ const fallbackQuotes: Quote[] = [
     status: "Aprovado",
   },
   {
-    id: "ORC-2384",
+    id: "fallback-quote-3",
+    number: "ORC-2026-0003",
+    customerId: "fallback-client-3",
     customer: "Cooperativa Horizonte",
     equipment: "Automação de irrigação",
     value: 78600,
@@ -63,44 +76,71 @@ const fallbackQuotes: Quote[] = [
 ];
 
 export default function QuotesPage() {
-  const { rows, setRows, loading } = useModuleRows<Quote>(
+  const { rows, setRows, loading, error: loadError } = useModuleRows<Quote>(
     "quotes",
     fallbackQuotes,
   );
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<string | null>(null);
   const [visible, setVisible] = useState(false);
+  const [clients, setClients] = useState<ClientOption[]>([]);
+  const [clientError, setClientError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [form, setForm] = useState({
-    customer: "",
+    customerId: "",
     equipment: "",
     value: 0,
     validUntil: "",
     status: "Rascunho",
   });
+  useEffect(() => {
+    listClientOptions()
+      .then(setClients)
+      .catch((error: unknown) => {
+        setClientError(
+          error instanceof Error
+            ? error.message
+            : "Não foi possível carregar os clientes.",
+        );
+      });
+  }, []);
   const filtered = rows.filter(
     (row) =>
-      [row.id, row.customer, row.equipment]
+      [row.number, row.customer, row.equipment]
         .join(" ")
         .toLowerCase()
         .includes(query.toLowerCase()) &&
       (!status || row.status === status),
   );
   const save = async () => {
-    if (!form.customer.trim() || !form.equipment.trim()) return;
-    const quote = await persistRow<Quote>("quotes", {
-      ...form,
-      id: `ORC-${2401 + rows.length}`,
-      issueDate: new Date().toISOString().slice(0, 10),
-    });
-    setRows((current) => [quote, ...current]);
-    setVisible(false);
-    setForm({
-      customer: "",
-      equipment: "",
-      value: 0,
-      validUntil: "",
-      status: "Rascunho",
-    });
+    if (!form.customerId || !form.equipment.trim()) return;
+    setSaving(true);
+    setSaveError(null);
+    try {
+      const customer = clients.find((item) => item.id === form.customerId);
+      const quote = await persistRow<Quote>("quotes", {
+        ...form,
+        customer: customer?.name ?? "",
+      });
+      setRows((current) => [quote, ...current]);
+      setVisible(false);
+      setForm({
+        customerId: "",
+        equipment: "",
+        value: 0,
+        validUntil: "",
+        status: "Rascunho",
+      });
+    } catch (requestError) {
+      setSaveError(
+        requestError instanceof Error
+          ? requestError.message
+          : "Não foi possível salvar o orçamento.",
+      );
+    } finally {
+      setSaving(false);
+    }
   };
   return (
     <div>
@@ -145,6 +185,9 @@ export default function QuotesPage() {
           },
         ]}
       />
+      {(loadError || clientError) && (
+        <Message severity="warn" text={loadError ?? clientError ?? ""} className="mb-3 w-full" />
+      )}
       <Card style={{ border: "1px solid #dce8dc", borderRadius: 14 }}>
         <ModuleToolbar
           value={query}
@@ -177,7 +220,7 @@ export default function QuotesPage() {
           responsiveLayout="scroll"
           emptyMessage={<EmptyState />}
         >
-          <Column field="id" header="Número" />
+          <Column field="number" header="Número" />
           <Column field="customer" header="Cliente" />
           <Column field="equipment" header="Escopo" />
           <Column
@@ -223,20 +266,26 @@ export default function QuotesPage() {
             <Button
               label="Salvar orçamento"
               icon="pi pi-check"
-              onClick={save}
+              onClick={() => void save()}
+              loading={saving}
+              disabled={!clients.length}
             />
           </>
         }
       >
         <div className="grid pt-2">
+          {saveError && <div className="col-12"><Message severity="error" text={saveError} className="w-full" /></div>}
           <FormField label="Cliente" className="col-12">
-            <InputText
-              value={form.customer}
-              onChange={(event) =>
-                setForm({ ...form, customer: event.target.value })
-              }
+            <Dropdown
+              value={form.customerId}
+              options={clients}
+              optionLabel="name"
+              optionValue="id"
+              onChange={(event) => setForm({ ...form, customerId: event.value })}
+              placeholder={clients.length ? "Selecione um cliente" : "Cadastre um cliente antes"}
               className="w-full"
-              autoFocus
+              filter
+              filterBy="name"
             />
           </FormField>
           <FormField label="Descrição do escopo" className="col-12">

@@ -7,6 +7,7 @@ import { InputText } from "primereact/inputtext";
 import { InputNumber } from "primereact/inputnumber";
 import { Dropdown } from "primereact/dropdown";
 import { Card } from "primereact/card";
+import { Message } from "primereact/message";
 import {
   PageHeader,
   ModuleToolbar,
@@ -25,6 +26,7 @@ import {
 
 type Transaction = {
   id: string;
+  code: string;
   description: string;
   type: string;
   category: string;
@@ -34,7 +36,8 @@ type Transaction = {
 };
 const fallbackTransactions: Transaction[] = [
   {
-    id: "FIN-7821",
+    id: "fallback-finance-1",
+    code: "FIN-0001",
     description: "Parcela OS-10461",
     type: "Receita",
     category: "Serviços",
@@ -43,7 +46,8 @@ const fallbackTransactions: Transaction[] = [
     status: "Pendente",
   },
   {
-    id: "FIN-7818",
+    id: "fallback-finance-2",
+    code: "FIN-0002",
     description: "HidroParts Distribuidora",
     type: "Despesa",
     category: "Compras",
@@ -52,7 +56,8 @@ const fallbackTransactions: Transaction[] = [
     status: "Pendente",
   },
   {
-    id: "FIN-7802",
+    id: "fallback-finance-3",
+    code: "FIN-0003",
     description: "Contrato manutenção Santa Clara",
     type: "Receita",
     category: "Contratos",
@@ -63,13 +68,15 @@ const fallbackTransactions: Transaction[] = [
 ];
 
 export default function FinancePage() {
-  const { rows, setRows, loading } = useModuleRows<Transaction>(
+  const { rows, setRows, loading, error: loadError } = useModuleRows<Transaction>(
     "finance",
     fallbackTransactions,
   );
   const [query, setQuery] = useState("");
   const [type, setType] = useState<string | null>(null);
   const [visible, setVisible] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [form, setForm] = useState({
     description: "",
     type: "Receita",
@@ -80,7 +87,7 @@ export default function FinancePage() {
   });
   const filtered = rows.filter(
     (row) =>
-      [row.id, row.description, row.category]
+      [row.code, row.description, row.category]
         .join(" ")
         .toLowerCase()
         .includes(query.toLowerCase()) &&
@@ -94,20 +101,29 @@ export default function FinancePage() {
     .reduce((sum, row) => sum + row.amount, 0);
   const save = async () => {
     if (!form.description.trim()) return;
-    const transaction = await persistRow<Transaction>("finance", {
-      ...form,
-      id: `FIN-${7821 + rows.length}`,
-    });
-    setRows((current) => [transaction, ...current]);
-    setVisible(false);
-    setForm({
-      description: "",
-      type: "Receita",
-      category: "Serviços",
-      amount: 0,
-      dueDate: "",
-      status: "Pendente",
-    });
+    setSaving(true);
+    setSaveError(null);
+    try {
+      const transaction = await persistRow<Transaction>("finance", form);
+      setRows((current) => [transaction, ...current]);
+      setVisible(false);
+      setForm({
+        description: "",
+        type: "Receita",
+        category: "Serviços",
+        amount: 0,
+        dueDate: "",
+        status: "Pendente",
+      });
+    } catch (requestError) {
+      setSaveError(
+        requestError instanceof Error
+          ? requestError.message
+          : "Não foi possível salvar o lançamento.",
+      );
+    } finally {
+      setSaving(false);
+    }
   };
   return (
     <div>
@@ -144,6 +160,7 @@ export default function FinancePage() {
           },
         ]}
       />
+      {loadError && <Message severity="warn" text={loadError} className="mb-3 w-full" />}
       <Card style={{ border: "1px solid #dce8dc", borderRadius: 14 }}>
         <ModuleToolbar
           value={query}
@@ -176,7 +193,7 @@ export default function FinancePage() {
           responsiveLayout="scroll"
           emptyMessage={<EmptyState />}
         >
-          <Column field="id" header="Lançamento" />
+          <Column field="code" header="Lançamento" />
           <Column field="description" header="Descrição" />
           <Column
             field="type"
@@ -227,12 +244,14 @@ export default function FinancePage() {
             <Button
               label="Salvar lançamento"
               icon="pi pi-check"
-              onClick={save}
+              onClick={() => void save()}
+              loading={saving}
             />
           </>
         }
       >
         <div className="grid pt-2">
+          {saveError && <div className="col-12"><Message severity="error" text={saveError} className="w-full" /></div>}
           <FormField label="Descrição" className="col-12">
             <InputText
               value={form.description}
